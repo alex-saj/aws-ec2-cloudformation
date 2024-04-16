@@ -1,0 +1,19 @@
+# EC2 Instance
+myEC2Instance:
+  Type: AWS::EC2::Instance
+  Properties:
+    AvailabilityZone:     # Enter the desired availability zone
+    ImageId:              # Enter the AMI ID for the desired image
+    InstanceType:         # Enter the desired EC2 instance type
+    KeyName:              # Enter the name of the key pair for SSH access
+    IamInstanceProfile:   # Enter the IAM instance profile ARN if needed
+
+    Tags:
+      - Key: Name
+        Value:            # Enter a name for the instance
+
+    SecurityGroups:       # Enter the security group(s) for the instance
+
+    UserData: # Bash commands
+      Fn::Base64: |
+        # ...             # Enter the bash commands for user data

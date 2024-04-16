@@ -1,0 +1,41 @@
+# Parameters
+Parameters:
+  EC2InstanceNameParameter:
+    Type: String
+    # ...
+
+  NewKeyPairNameParameter: # If creating a new key pair
+    Type: String
+    # ...
+
+  KeyPairNameParameter: # Optional if using existing key pair
+    Type: AWS::EC2::KeyPair::KeyName
+    # ...
+
+  SecurityGroupNameParameter:
+    Type: String
+    # ...
+
+  AvailabilityZoneParameter:
+    Type: AWS::EC2::AvailabilityZone::Name
+    # ...
+
+  ImageIdParameter:
+    Type: AWS::EC2::Image::Id
+    # ...
+
+  InstanceTypeParameter:
+    Type: String
+    # ...
+
+  SSHLocation:
+    Type: String
+    # ...
+
+  HTTPLocation:
+    Type: String
+    # ...
+
+  HTTPSLocation:
+    Type: String
+    # ...

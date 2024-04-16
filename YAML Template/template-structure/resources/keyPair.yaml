@@ -1,0 +1,14 @@
+Parameters:
+  # Parameter for specifying the name of an existing EC2 key pair
+  KeyPairNameParameter:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description:          # Enter a description for the Key Pair parameter
+    Default:              # Set a default value for the Key Pair parameter
+
+Resources:
+  # EC2 Instance
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName:             
+        Ref:              # Reference the KeyName associated with the Key Pair parameter

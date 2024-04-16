@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: # ...
+
+Parameters:
+  EC2InstanceNameParameter:
+    Type: String
+    # ...
+
+  NewKeyPairNameParameter: # If creating a new key pair
+    Type: String
+    # ...
+    
+  KeyPairNameParameter: # Optional if using existing key pair
+    Type: AWS::EC2::KeyPair::KeyName
+    # ...
+
+  SecurityGroupNameParameter:
+    Type: String
+    # ...
+
+  AvailabilityZoneParameter:
+    Type: AWS::EC2::AvailabilityZone::Name
+    # ...
+
+  ImageIdParameter:
+    Type: AWS::EC2::Image::Id
+    # ...
+
+  InstanceTypeParameter:
+    Type: String
+    # ...
+
+  SSHLocation:
+    Type: String
+    # ...
+
+  HTTPLocation:
+    Type: String
+    # ...
+
+  HTTPSLocation:
+    Type: String
+    # ...
+
+Resources:
+  MyS3AccessRole:
+    Type: AWS::IAM::Role
+    # ...
+
+  MyS3AccessProfile:
+    Type: AWS::IAM::InstanceProfile
+    # ...
+
+  InstanceKeyPair:
+    Type: AWS::EC2::KeyPair
+    # ...
+
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    # ...
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    # ...
+
+Outputs:
+  InstanceId:
+    Description: # ...
+    Value: # ...
+
+  AZ:
+    Description: # ...
+    Value: # ...
+
+  PublicDNS:
+    Description: # ...
+    Value: # ...
+
+  PublicIP:
+    Description: # ...
+    Value: # ...

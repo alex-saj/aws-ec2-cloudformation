@@ -1,0 +1,20 @@
+Resources:
+  S3AccessRole:
+    Type: AWS::IAM::Role
+    # ...
+
+  S3AccessProfile:
+    Type: AWS::IAM::InstanceProfile
+    # ...
+
+  InstanceKeyPair:
+    Type: AWS::EC2::KeyPair
+    # ...
+
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    # ...
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    # ...

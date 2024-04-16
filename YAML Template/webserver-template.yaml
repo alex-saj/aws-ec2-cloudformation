@@ -1,0 +1,202 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFormation template for launching an EC2 instance.
+
+Parameters:
+  # Parameter for specifying the name of the EC2 instance
+  EC2InstanceNameParameter:
+    Type: String
+    Description: Specify the name for the EC2 instance
+    Default: MyEC2Instance
+
+  # Parameter for specifying the key pair name for creating a new key pair
+  NewKeyPairNameParameter:
+    Type: String
+    Description: Specify the name for the key pair
+    Default: MyEC2Instance-key
+
+  # Parameter for specifying the name of an existing EC2 key pair
+  # ...
+  #KeyPairNameParameter:     # Optional
+    #Type: AWS::EC2::KeyPair::KeyName
+    #Description: Specify the name of an existing EC2 key pair (if you have one)
+    #Default: webserver-key  # Replace with default key pair name
+  # ...
+
+  # Parameter for specifying the name for the security group
+  SecurityGroupNameParameter:
+    Type: String
+    Description: Specify the name for the security group of the EC2 instance
+    Default: MyEC2Instance-sg
+
+  # Parameter for specifying the Availability Zone for the EC2 instance
+  AvailabilityZoneParameter:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: Choose the Availability Zone for the EC2 instance
+    Default: us-east-1a # Set a default AZ if needed
+    
+  # Parameter for specifying the Image ID for the EC2 instance
+  ImageIdParameter:
+    Type: AWS::EC2::Image::Id
+    Description: Specify the AMI ID for the EC2 instance
+    Default: ami-00b8917ae86a424c9  # Set a default AMI ID if needed
+
+  # Parameter for specifying the EC2 instance type
+  InstanceTypeParameter:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      # Specify the allowed values for the EC2 instance type
+      - t2.micro
+      # Add more allowed values as needed
+    Description: Default is t2.micro.
+
+  # Parameter for defining the IP address range for SSH access
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: "9"
+    MaxLength: "18"
+    Default: "0.0.0.0/0"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "Must be a valid IP CIDR range of the form x.x.x.x/x."
+
+  # Parameter for defining the IP address range for HTTP traffic
+  HTTPLocation:
+    Description: The IP address range that can be used for HTTP Traffic to the EC2 instances
+    Type: String
+    MinLength: "9"
+    MaxLength: "18"
+    Default: "0.0.0.0/0"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "Must be a valid IP CIDR range of the form x.x.x.x/x."
+  
+  # Parameter for defining the IP address range for HTTPS traffic
+  HTTPSLocation:
+    Description: The IP address range that can be used for HTTPS Traffic to the EC2 instances
+    Type: String
+    MinLength: "9"
+    MaxLength: "18"
+    Default: "0.0.0.0/0"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "Must be a valid IP CIDR range of the form x.x.x.x/x."
+
+Resources:
+  # IAM Role
+  MyS3AccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EC2-S3AccessRole     # Enter a name for the IAM role
+      ManagedPolicyArns:             # Reference or specify managed policy ARNs
+        - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"  
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com  # Service allowed to assume the role
+            Action: sts:AssumeRole        # Action allowed for assuming the role
+
+  # IAM Instance Profile
+  MyS3AccessProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: S3AccessProfile     # Enter a name for the IAM instance profile
+      Roles:
+        - Ref: MyS3AccessRole                   # Reference the IAM role(s) associated with this profile
+
+
+  # New Key Pair
+  InstanceKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName:
+        Ref: NewKeyPairNameParameter   # Reference the parameter for the Key Pair name
+
+  # EC2 Instance
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone:
+        Ref: AvailabilityZoneParameter    # Reference the parameter for the availability zone
+      ImageId:
+        Ref: ImageIdParameter              # Reference the parameter for the AMI ID
+      InstanceType:
+        Ref: InstanceTypeParameter         # Reference the parameter for the instance type
+      KeyName: 
+        Ref: NewKeyPairNameParameter       # Reference the parameter for the Key Pair name
+      IamInstanceProfile: "S3AccessProfile" # Specify the IAM instance profile associated with the instance
+      Tags:
+        - Key: Name
+          Value:
+            Ref: EC2InstanceNameParameter  # Reference the parameter for the instance name
+
+      # Instance Security Group
+      SecurityGroups: 
+        - Ref: InstanceSecurityGroup        # Reference the security group for the instance
+
+      # User Data
+      UserData: # Bash commands
+        Fn::Base64: |
+          #!/bin/bash
+          sudo yum update -y 
+          sudo yum install httpd -y
+          sudo service httpd start 
+          sudo chkconfig httpd on
+          sudo aws s3 cp s3://sajanalex.net/ /var/www/html/ --recursive
+          sudo chown -R apache:apache /var/www/html
+          sudo service httpd restart
+
+  
+  # EC2 Security Group
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Web Server Security Group"   # Description for the security group
+      GroupName:
+        Ref: SecurityGroupNameParameter             # Reference the parameter for the security group name
+      SecurityGroupIngress:                         # Define inbound rules for the security group
+        - IpProtocol: tcp
+          FromPort: 22    # SSH
+          ToPort: 22
+          CidrIp:
+            Ref: SSHLocation                        # Reference the parameter for the SSH location
+        - IpProtocol: tcp
+          FromPort: 80    # HTTP
+          ToPort: 80
+          CidrIp:
+            Ref: HTTPLocation                       # Reference the parameter for the HTTP location
+        - IpProtocol: tcp
+          FromPort: 443   # HTTPS
+          ToPort: 443
+          CidrIp:
+            Ref: HTTPSLocation                      # Reference the parameter for the HTTPS location
+      Tags:
+        - Key: Name
+          Value:
+            Ref: SecurityGroupNameParameter         # Reference the parameter for the security group name
+
+
+Outputs:
+  # Output InstanceId
+  InstanceId:
+    Description: "InstanceId of the newly created EC2 instance"
+    Value: 
+      Ref: myEC2Instance            # Reference the resource representing the EC2 instance
+
+  # Output Availability Zone
+  AZ:
+    Description: "Availability Zone of the newly created EC2 instance"
+    Value: 
+      Fn::GetAtt: [myEC2Instance, AvailabilityZone]   # Reference the Availability Zone attribute of the EC2 instance
+
+  # Output Public DNSName
+  PublicDNS:
+    Description: "Public DNSName of the newly created EC2 instance"
+    Value: 
+      Fn::GetAtt: [myEC2Instance, PublicDnsName]      # Reference the Public DNSName attribute of the EC2 instance
+
+  # Output Public IP address
+  PublicIP:
+    Description: "Public IP address of the newly created EC2 instance"
+    Value: 
+      Fn::GetAtt: [myEC2Instance, PublicIp]           # Reference the Public IP attribute of the EC2 instance

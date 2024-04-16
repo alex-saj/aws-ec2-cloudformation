@@ -1,0 +1,21 @@
+# IAM Role
+MyS3AccessRole:
+  Type: AWS::IAM::Role
+  Properties:
+    RoleName:              # Enter a name for the IAM role
+    ManagedPolicyArns:      
+      -                    # Enter the ARN of managed policies to attach (if any)
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            Service:       # Enter the service that will assume this role
+          Action:          # Define the actions allowed by this role
+
+# IAM Instance Profile
+MyS3AccessProfile:
+  Type: AWS::IAM::InstanceProfile
+  Properties:
+    InstanceProfileName:  # Enter a name for the IAM instance profile
+    Roles:              # Reference the IAM role(s) associated with this profile
